@@ -24,37 +24,39 @@ export default async function DestinationDetailPage({
   const session = await auth()
   const isAdmin = (session?.user as any)?.role === 'ADMIN'
 
-  const dest = await prisma.destination.findUnique({
-    where: { id: params.destId },
-    include: {
-      day: { include: { trip: true } },
-      replaced_by: { select: { id: true, name: true } },
-      replaces: { select: { id: true, name: true } },
-      expenses: {
-        include: {
-          user: { select: { id: true, name: true, avatar_url: true } },
+  // Run both independent queries in parallel to save a DB round-trip.
+  const [dest, members] = await Promise.all([
+    prisma.destination.findUnique({
+      where: { id: params.destId },
+      include: {
+        day: { include: { trip: true } },
+        replaced_by: { select: { id: true, name: true } },
+        replaces: { select: { id: true, name: true } },
+        expenses: {
+          include: {
+            user: { select: { id: true, name: true, avatar_url: true } },
+          },
+          orderBy: { created_at: 'asc' },
         },
-        orderBy: { created_at: 'asc' },
-      },
-      media: {
-        include: { uploader: { select: { name: true } } },
-        orderBy: { created_at: 'asc' },
-      },
-      feedbacks: {
-        include: {
-          user: { select: { id: true, name: true, avatar_url: true } },
+        media: {
+          include: { uploader: { select: { name: true } } },
+          orderBy: { created_at: 'asc' },
         },
-        orderBy: { updated_at: 'desc' },
+        feedbacks: {
+          include: {
+            user: { select: { id: true, name: true, avatar_url: true } },
+          },
+          orderBy: { updated_at: 'desc' },
+        },
       },
-    },
-  })
+    }),
+    prisma.tripMember.findMany({
+      where: { trip_id: params.tripId },
+      include: { user: { select: { id: true, name: true, avatar_url: true } } },
+    }),
+  ])
 
   if (!dest) notFound()
-
-  const members = await prisma.tripMember.findMany({
-    where: { trip_id: params.tripId },
-    include: { user: { select: { id: true, name: true, avatar_url: true } } },
-  })
 
   return (
     <div className="space-y-4">

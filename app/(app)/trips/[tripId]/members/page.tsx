@@ -35,6 +35,9 @@ export default async function MembersPage({
               expenses: {
                 include: { user: { select: { id: true, name: true } } },
               },
+              // Pull feedback authorship in the same round-trip so we don't
+              // need a second sequential query for "who hasn't given feedback".
+              feedbacks: { select: { user_id: true } },
             },
           },
         },
@@ -61,20 +64,13 @@ export default async function MembersPage({
   }))
 
   const allDestinations = trip.days.flatMap((d) => d.destinations)
-  const feedbackStatus = await prisma.destinationFeedback.findMany({
-    where: { destination_id: { in: allDestinations.map((d) => d.id) } },
-    select: { destination_id: true, user_id: true },
-  })
 
   const missingFeedback: Record<string, string[]> = {}
   for (const member of trip.members) {
     const missing = allDestinations
       .filter(
         (dest) =>
-          !feedbackStatus.some(
-            (f) =>
-              f.destination_id === dest.id && f.user_id === member.user_id
-          )
+          !dest.feedbacks.some((f) => f.user_id === member.user_id)
       )
       .map((d) => d.name)
     if (missing.length) missingFeedback[member.user.name] = missing

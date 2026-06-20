@@ -30,6 +30,10 @@ export function TodayBanner({
   const router = useRouter()
   const [now, setNow] = useState(() => new Date())
   const [busy, setBusy] = useState(false)
+  // Optimistic status overrides so the badge flips instantly on click.
+  const [statusOverride, setStatusOverride] = useState<
+    Record<string, 'DONE' | 'REJECTED'>
+  >({})
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60000)
@@ -38,13 +42,25 @@ export function TodayBanner({
 
   async function updateStatus(destId: string, status: 'DONE' | 'REJECTED') {
     setBusy(true)
-    await fetch(`/api/destinations/${destId}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    })
-    router.refresh()
-    setBusy(false)
+    // Reflect the change immediately, then sync in the background.
+    setStatusOverride((s) => ({ ...s, [destId]: status }))
+    try {
+      await fetch(`/api/destinations/${destId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      router.refresh()
+    } catch {
+      // Roll back the optimistic change if the request failed.
+      setStatusOverride((s) => {
+        const next = { ...s }
+        delete next[destId]
+        return next
+      })
+    } finally {
+      setBusy(false)
+    }
   }
 
   // Upcoming trip — countdown
@@ -86,6 +102,10 @@ export function TodayBanner({
     return new Date(d.start_time) > now && d.status === 'PENDING'
   })
   const featured = current ?? next ?? todayDestinations[0]
+  const override = statusOverride[featured.id]
+  const featuredStatus: Destination['status'] = override
+    ? override
+    : featured.status
 
   return (
     <div className="bg-golden-hour relative overflow-hidden rounded-2xl p-6 text-white">
@@ -103,10 +123,10 @@ export function TodayBanner({
                 {featured.end_time && ` → ${formatTime(featured.end_time)}`}
               </span>
             )}
-            <StatusBadge status={featured.status} className="bg-white/90" />
+            <StatusBadge status={featuredStatus} className="bg-white/90" />
           </div>
         </div>
-        {isAdmin && featured.status === 'PENDING' && (
+        {isAdmin && featuredStatus === 'PENDING' && (
           <div className="flex shrink-0 gap-2">
             <Button
               size="sm"
