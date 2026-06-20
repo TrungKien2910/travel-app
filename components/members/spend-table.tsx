@@ -37,11 +37,11 @@ export function SpendTable({ members, days, expenses }: SpendTableProps) {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-sm">
+    <div className="-mx-2 overflow-x-auto px-2">
+      <table className="w-full min-w-[28rem] border-collapse text-sm">
         <thead>
           <tr className="bg-sea-soft/60">
-            <th className="border-b border-line p-3 text-left font-semibold text-ink">
+            <th className="whitespace-nowrap border-b border-line p-3 text-left font-semibold text-ink">
               Thành viên
             </th>
             {days.map((day) => (
@@ -60,7 +60,7 @@ export function SpendTable({ members, days, expenses }: SpendTableProps) {
         <tbody>
           {members.map((member) => (
             <tr key={member.user_id} className="hover:bg-muted/40">
-              <td className="border-b border-line p-3 font-medium text-ink">
+              <td className="whitespace-nowrap border-b border-line p-3 font-medium text-ink">
                 {member.user.name}
               </td>
               {days.map((day) => {
@@ -70,7 +70,7 @@ export function SpendTable({ members, days, expenses }: SpendTableProps) {
                   <td
                     key={day.id}
                     className={cn(
-                      'tabular border-b border-line p-3 text-right',
+                      'tabular whitespace-nowrap border-b border-line p-3 text-right',
                       isMax ? 'font-semibold text-sun-deep' : 'text-muted-foreground'
                     )}
                   >
@@ -78,7 +78,7 @@ export function SpendTable({ members, days, expenses }: SpendTableProps) {
                   </td>
                 )
               })}
-              <td className="tabular border-b border-line p-3 text-right font-semibold text-sea-deep">
+              <td className="tabular whitespace-nowrap border-b border-line p-3 text-right font-semibold text-sea-deep">
                 {formatVND(getMemberTotal(member.user_id))}
               </td>
             </tr>
@@ -86,13 +86,16 @@ export function SpendTable({ members, days, expenses }: SpendTableProps) {
         </tbody>
         <tfoot>
           <tr className="bg-muted/50 font-semibold">
-            <td className="p-3 text-ink">Tổng ngày</td>
+            <td className="whitespace-nowrap p-3 text-ink">Tổng ngày</td>
             {days.map((day) => (
-              <td key={day.id} className="tabular p-3 text-right text-ink">
+              <td
+                key={day.id}
+                className="tabular whitespace-nowrap p-3 text-right text-ink"
+              >
                 {formatVND(getDayTotal(day.id))}
               </td>
             ))}
-            <td className="tabular p-3 text-right text-sea-deep">
+            <td className="tabular whitespace-nowrap p-3 text-right text-sea-deep">
               {formatVND(grandTotal)}
             </td>
           </tr>

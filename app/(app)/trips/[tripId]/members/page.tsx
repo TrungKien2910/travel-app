@@ -86,7 +86,7 @@ export default async function MembersPage({
             <ArrowLeft className="mr-1 h-4 w-4" /> Lịch trình
           </Link>
         </Button>
-        <h1 className="font-display text-2xl font-bold text-ink">
+        <h1 className="font-display text-xl font-bold text-ink sm:text-2xl">
           Thành viên & Chi tiêu
         </h1>
         {hasExpenses && (

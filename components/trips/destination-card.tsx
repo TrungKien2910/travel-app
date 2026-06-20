@@ -51,52 +51,61 @@ export function DestinationCard({ destination, tripId }: DestinationCardProps) {
         )}
       </div>
 
-      <div className="min-w-0 flex-1 self-center">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5">
+        {/* Row 1: name + status */}
+        <div className="flex items-start gap-2">
           <span
             className={cn(
-              'text-sm font-semibold',
+              'min-w-0 flex-1 text-sm font-semibold leading-snug',
               replaced ? 'text-muted-foreground line-through' : 'text-ink'
             )}
           >
             {destination.name}
           </span>
-          <StatusBadge status={destination.status} />
+          <StatusBadge status={destination.status} className="shrink-0" />
         </div>
-        {(destination.start_time || destination.end_time) && (
-          <div className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
-            <Clock className="h-3 w-3" />
-            {formatTime(destination.start_time)}
-            {destination.end_time && ` → ${formatTime(destination.end_time)}`}
-          </div>
-        )}
+
+        {/* Row 2: time on the left, money + feedback on the right */}
+        <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+          <span className="flex min-w-0 items-center gap-1">
+            {(destination.start_time || destination.end_time) && (
+              <>
+                <Clock className="h-3 w-3 shrink-0" />
+                <span className="truncate">
+                  {formatTime(destination.start_time)}
+                  {destination.end_time &&
+                    ` → ${formatTime(destination.end_time)}`}
+                </span>
+              </>
+            )}
+          </span>
+
+          <span className="flex shrink-0 items-center gap-2">
+            {destination._count.feedbacks > 0 && (
+              <span className="flex items-center gap-1">
+                <MessageSquare className="h-3 w-3" />
+                {destination._count.feedbacks}
+              </span>
+            )}
+            {destination.budget_estimate != null && (
+              <span
+                className={cn(
+                  'tabular font-medium',
+                  overBudget ? 'text-rose-500' : 'text-muted-foreground'
+                )}
+              >
+                {formatVND(actualTotal)}
+                <span className="text-muted-foreground/60">
+                  {' / '}
+                  {formatVND(destination.budget_estimate)}
+                </span>
+              </span>
+            )}
+          </span>
+        </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-3">
-        <div className="text-right">
-          {destination.budget_estimate != null && (
-            <p
-              className={cn(
-                'tabular text-xs font-medium',
-                overBudget ? 'text-rose-500' : 'text-muted-foreground'
-              )}
-            >
-              {formatVND(actualTotal)}
-              <span className="text-muted-foreground/60">
-                {' '}
-                / {formatVND(destination.budget_estimate)}
-              </span>
-            </p>
-          )}
-          {destination._count.feedbacks > 0 && (
-            <div className="mt-1 flex items-center justify-end gap-1 text-xs text-muted-foreground">
-              <MessageSquare className="h-3 w-3" />
-              {destination._count.feedbacks}
-            </div>
-          )}
-        </div>
-        <ChevronRight className="h-4 w-4 text-muted-foreground/40 transition-transform group-hover:translate-x-0.5 group-hover:text-sea" />
-      </div>
+      <ChevronRight className="h-4 w-4 shrink-0 self-center text-muted-foreground/40 transition-transform group-hover:translate-x-0.5 group-hover:text-sea" />
     </Link>
   )
 }

@@ -55,10 +55,10 @@ export default async function TripDetailPage({
   return (
     <div className="space-y-6">
       {/* Hero header */}
-      <div className="bg-horizon relative overflow-hidden rounded-2xl border border-line bg-card p-6 shadow-sm md:p-7">
+      <div className="bg-horizon relative overflow-hidden rounded-2xl border border-line bg-card p-5 shadow-sm sm:p-6 md:p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="font-display text-2xl font-bold text-ink md:text-3xl">
+            <h1 className="font-display text-xl font-bold text-ink sm:text-2xl md:text-3xl">
               {trip.title}
             </h1>
             {trip.description && (
@@ -105,13 +105,15 @@ export default async function TripDetailPage({
 
         {totalBudget > 0 && (
           <div className="mt-5 border-t border-line pt-4">
-            <div className="mb-1.5 flex justify-between text-sm">
-              <span className="text-muted-foreground">Chi tiêu cả chuyến</span>
+            <div className="mb-1.5 flex items-baseline justify-between gap-2 text-sm">
+              <span className="shrink-0 text-muted-foreground">
+                Chi tiêu cả chuyến
+              </span>
               <span
                 className={
                   totalActual > totalBudget
-                    ? 'tabular font-semibold text-rose-500'
-                    : 'tabular font-medium text-ink'
+                    ? 'tabular whitespace-nowrap text-right font-semibold text-rose-500'
+                    : 'tabular whitespace-nowrap text-right font-medium text-ink'
                 }
               >
                 {formatVND(totalActual)} / {formatVND(totalBudget)}

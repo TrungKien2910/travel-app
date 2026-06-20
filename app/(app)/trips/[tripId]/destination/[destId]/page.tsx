@@ -133,7 +133,7 @@ export default async function DestinationDetailPage({
         defaultValue="info"
         className="overflow-hidden rounded-2xl border border-line bg-card shadow-sm"
       >
-        <TabsList className="h-12 w-full justify-start rounded-none border-b border-line bg-muted/40 p-0">
+        <TabsList className="h-12 w-full justify-start overflow-x-auto rounded-none border-b border-line bg-muted/40 p-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {[
             ['info', 'Thông tin'],
             ['media', 'Ảnh & Bill'],
@@ -143,13 +143,13 @@ export default async function DestinationDetailPage({
             <TabsTrigger
               key={v}
               value={v}
-              className="h-full flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-sea data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              className="h-full shrink-0 whitespace-nowrap rounded-none border-b-2 border-transparent px-4 data-[state=active]:border-sea data-[state=active]:bg-transparent data-[state=active]:shadow-none sm:flex-1 sm:px-0"
             >
               {label}
             </TabsTrigger>
           ))}
         </TabsList>
-        <div className="p-5">
+        <div className="p-4 sm:p-5">
           <TabsContent value="info" className="mt-0">
             <InfoTab dest={dest as any} isAdmin={isAdmin} />
           </TabsContent>

@@ -60,7 +60,7 @@ export default async function DashboardPage() {
   if (!active) {
     return (
       <div className="space-y-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Tổng quan</h1>
+        <h1 className="font-display text-xl font-bold text-ink sm:text-2xl">Tổng quan</h1>
         <div className="rounded-2xl border border-dashed border-line bg-card p-12 text-center">
           <MapPin className="mx-auto mb-4 h-12 w-12 text-muted-foreground/30" />
           <p className="mb-4 text-muted-foreground">
@@ -210,7 +210,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-bold text-ink">Tổng quan</h1>
+        <h1 className="font-display text-xl font-bold text-ink sm:text-2xl">Tổng quan</h1>
         {isAdmin && (
           <Button asChild size="sm">
             <Link href="/trips/new">
@@ -223,7 +223,7 @@ export default async function DashboardPage() {
       {/* Trip cover card */}
       <Link
         href={`/trips/${trip.id}`}
-        className="group relative block h-40 overflow-hidden rounded-2xl border border-line md:h-48"
+        className="group relative block h-44 overflow-hidden rounded-2xl border border-line sm:h-48"
       >
         {coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -235,22 +235,22 @@ export default async function DashboardPage() {
         ) : (
           <div className="bg-golden-hour absolute inset-0" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/30 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 p-5 text-white md:p-6">
-          <h2 className="font-display text-2xl font-bold drop-shadow-sm md:text-3xl">
+        <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/40 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 p-4 text-white sm:p-6">
+          <h2 className="font-display text-xl font-bold drop-shadow-sm sm:text-2xl md:text-3xl">
             {trip.title}
           </h2>
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/85">
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-white/90 sm:text-sm">
             <span className="flex items-center gap-1.5">
-              <CalendarDays className="h-4 w-4" />
+              <CalendarDays className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               {formatDate(trip.start_date)} – {formatDate(trip.end_date)}
             </span>
             <span className="flex items-center gap-1.5">
-              <Users className="h-4 w-4" />
+              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               {fullTrip!.members.length} thành viên
             </span>
             <span className="flex items-center gap-1.5">
-              <MapPin className="h-4 w-4" />
+              <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               {liveDests.length} điểm đến
             </span>
           </div>

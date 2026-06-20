@@ -26,7 +26,7 @@ export default async function AccountPage() {
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
-      <h1 className="font-display text-2xl font-bold text-ink">Tài khoản</h1>
+      <h1 className="font-display text-xl font-bold text-ink sm:text-2xl">Tài khoản</h1>
 
       <Card>
         <CardContent className="flex items-center gap-4 pt-6">

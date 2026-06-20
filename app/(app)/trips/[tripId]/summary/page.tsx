@@ -98,7 +98,7 @@ export default async function SummaryPage({
             <ArrowLeft className="mr-1 h-4 w-4" /> Lịch trình
           </Link>
         </Button>
-        <h1 className="font-display text-2xl font-bold text-ink">
+        <h1 className="font-display text-xl font-bold text-ink sm:text-2xl">
           Tổng kết chuyến đi
         </h1>
       </div>
@@ -139,7 +139,7 @@ export default async function SummaryPage({
         </div>
       ) : (
         <div className="bg-horizon rounded-2xl border border-line bg-card p-6">
-          <h2 className="font-display text-2xl font-bold text-ink">
+          <h2 className="font-display text-xl font-bold text-ink sm:text-2xl">
             {trip.title}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
