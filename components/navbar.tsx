@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { UserAvatar } from '@/components/ui/user-avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,21 +44,14 @@ const navLinks: NavLink[] = [
   { href: '/admin/users', label: 'Quản lý', icon: Users, adminOnly: true },
 ]
 
-export function Navbar() {
+export function Navbar({ avatarUrl }: { avatarUrl?: string | null }) {
   const pathname = usePathname()
   const { data: session } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const isAdmin = (session?.user as any)?.role === 'ADMIN'
   const links = navLinks.filter((l) => !l.adminOnly || isAdmin)
-
-  const initials =
-    session?.user?.name
-      ?.split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2) ?? '?'
+  const navUser = { name: session?.user?.name ?? '?', avatar_url: avatarUrl }
 
   function isActive(href: string) {
     return href === '/dashboard'
@@ -109,11 +102,7 @@ export function Navbar() {
                 variant="ghost"
                 className="flex h-10 items-center gap-2 px-2"
               >
-                <Avatar className="h-8 w-8 ring-1 ring-line">
-                  <AvatarFallback className="bg-sea-soft text-xs font-semibold text-sea-deep">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar user={navUser} className="h-8 w-8 ring-1 ring-line" />
                 <span className="text-sm font-medium text-ink">
                   {session?.user?.name}
                 </span>

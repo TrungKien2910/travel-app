@@ -17,6 +17,7 @@ export async function GET() {
       name: true,
       email: true,
       role: true,
+      avatar_url: true,
       created_at: true,
       _count: { select: { trip_memberships: true, trips_created: true } },
     },

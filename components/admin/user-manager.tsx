@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { UserAvatar } from '@/components/ui/user-avatar'
 import {
   Select,
   SelectContent,
@@ -27,6 +27,7 @@ interface ManagedUser {
   name: string
   email: string
   role: 'ADMIN' | 'VIEWER'
+  avatar_url?: string | null
   created_at: string
   _count: { trip_memberships: number; trips_created: number }
 }
@@ -163,11 +164,10 @@ export function UserManager({
                 <tr key={u.id} className="border-b border-line last:border-0 hover:bg-muted/30">
                   <td className="p-3">
                     <div className="flex items-center gap-2.5">
-                      <Avatar className="h-9 w-9 ring-1 ring-line">
-                        <AvatarFallback className="bg-sea-soft text-xs font-semibold text-sea-deep">
-                          {u.name.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
+                      <UserAvatar
+                        user={u}
+                        className="h-9 w-9 ring-1 ring-line"
+                      />
                       <div className="min-w-0">
                         <p className="truncate font-medium text-ink">
                           {u.name}
