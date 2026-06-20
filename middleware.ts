@@ -1,5 +1,9 @@
-import { auth } from '@/lib/auth'
+import NextAuth from 'next-auth'
 import { NextResponse } from 'next/server'
+import { authConfig } from '@/auth.config'
+
+// Edge middleware uses the lightweight config (no Credentials/bcrypt/Prisma).
+const { auth } = NextAuth(authConfig)
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth
