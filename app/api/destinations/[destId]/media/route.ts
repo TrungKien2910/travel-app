@@ -6,7 +6,8 @@ import path from 'path'
 
 const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_PHOTO = ['image/jpeg', 'image/png', 'image/webp']
-const ALLOWED_BILL = ['image/jpeg', 'image/png', 'application/pdf']
+// Bills are images too, so they can be shown as thumbnails / in the lightbox.
+const ALLOWED_BILL = ['image/jpeg', 'image/png', 'image/webp']
 
 export async function POST(
   req: Request,

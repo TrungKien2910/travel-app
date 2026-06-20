@@ -9,8 +9,7 @@ import {
   Upload,
   Trash2,
   Star,
-  FileText,
-  ExternalLink,
+  ReceiptText,
   ImageIcon,
   Maximize2,
 } from 'lucide-react'
@@ -21,6 +20,7 @@ export function MediaTab({ media, destId, isAdmin }: any) {
   const photoRef = useRef<HTMLInputElement>(null)
   const billRef = useRef<HTMLInputElement>(null)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const [billLightboxIndex, setBillLightboxIndex] = useState<number | null>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
 
@@ -30,6 +30,11 @@ export function MediaTab({ media, destId, isAdmin }: any) {
     src: p.file_path,
     alt: p.file_name,
     caption: p.file_name,
+  }))
+  const billImages = bills.map((b: any) => ({
+    src: b.file_path,
+    alt: b.file_name,
+    caption: b.file_name,
   }))
 
   async function upload(files: FileList | null, type: 'PHOTO' | 'BILL') {
@@ -190,7 +195,7 @@ export function MediaTab({ media, destId, isAdmin }: any) {
                 ref={billRef}
                 type="file"
                 multiple
-                accept="image/jpeg,image/png,application/pdf"
+                accept="image/jpeg,image/png,image/webp"
                 className="hidden"
                 onChange={(e) => upload(e.target.files, 'BILL')}
               />
@@ -199,45 +204,53 @@ export function MediaTab({ media, destId, isAdmin }: any) {
         </div>
 
         {bills.length === 0 ? (
-          <p className="py-4 text-center text-sm text-muted-foreground">
-            Chưa có bill nào.
-          </p>
+          <div className="rounded-xl border-2 border-dashed border-line p-8 text-center text-muted-foreground/60">
+            <ReceiptText className="mx-auto mb-2 h-8 w-8" />
+            <p className="text-sm">Chưa có bill nào.</p>
+          </div>
         ) : (
-          <div className="space-y-2">
-            {bills.map((bill: any) => (
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
+            {bills.map((bill: any, i: number) => (
               <div
                 key={bill.id}
-                className="flex items-center gap-3 rounded-xl border border-line bg-card p-3"
+                className="group relative aspect-square overflow-hidden rounded-xl border border-line bg-muted"
               >
-                <div className="rounded-lg bg-sun-soft p-2">
-                  <FileText className="h-5 w-5 text-sun-deep" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-ink">
-                    {bill.file_name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {bill.uploader?.name} ·{' '}
-                    {(bill.file_size / 1024).toFixed(0)} KB
-                  </p>
-                </div>
-                <a
-                  href={bill.file_path}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sea hover:text-sea-deep"
-                  aria-label="Mở bill"
+                <button
+                  type="button"
+                  onClick={() => setBillLightboxIndex(i)}
+                  className="absolute inset-0 h-full w-full cursor-zoom-in"
+                  aria-label={`Xem bill ${bill.file_name}`}
                 >
-                  <ExternalLink className="h-4 w-4" />
-                </a>
+                  <Image
+                    src={bill.file_path}
+                    alt={bill.file_name}
+                    fill
+                    sizes="(max-width: 768px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-ink/20 opacity-0 transition-opacity group-hover:opacity-100">
+                    <Maximize2 className="h-6 w-6 text-white drop-shadow" />
+                  </span>
+                </button>
+
+                {/* Bill tag */}
+                <span className="pointer-events-none absolute left-1.5 top-1.5 rounded-full bg-sun/90 px-2 py-0.5 text-[10px] font-medium text-white shadow-sm">
+                  Bill
+                </span>
+
                 {isAdmin && (
-                  <button
-                    onClick={() => deleteMedia(bill.id)}
-                    className="text-muted-foreground/40 hover:text-rose-500"
-                    aria-label="Xóa bill"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-end p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        deleteMedia(bill.id)
+                      }}
+                      className="pointer-events-auto rounded-full bg-rose-500 p-2 text-white shadow"
+                      aria-label="Xóa bill"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 )}
               </div>
             ))}
@@ -249,6 +262,11 @@ export function MediaTab({ media, destId, isAdmin }: any) {
         images={lightboxImages}
         index={lightboxIndex}
         onClose={() => setLightboxIndex(null)}
+      />
+      <Lightbox
+        images={billImages}
+        index={billLightboxIndex}
+        onClose={() => setBillLightboxIndex(null)}
       />
     </div>
   )
