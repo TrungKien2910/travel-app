@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { formatVND, formatTime } from '@/lib/format'
-import { Clock, MessageSquare, ChevronRight } from 'lucide-react'
+import { Clock, MessageSquare, ChevronRight, ImageIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface DestinationCardProps {
@@ -13,6 +13,7 @@ interface DestinationCardProps {
     status: 'PENDING' | 'DONE' | 'REJECTED' | 'REPLACED'
     budget_estimate: number | null
     expenses: { amount: number }[]
+    media?: { file_path: string }[]
     _count: { feedbacks: number }
   }
   tripId: string
@@ -24,16 +25,33 @@ export function DestinationCard({ destination, tripId }: DestinationCardProps) {
     destination.budget_estimate != null &&
     actualTotal > destination.budget_estimate
   const replaced = destination.status === 'REPLACED'
+  const thumb = destination.media?.[0]?.file_path ?? null
 
   return (
     <Link
       href={`/trips/${tripId}/destination/${destination.id}`}
       className={cn(
-        'group flex items-start justify-between gap-3 rounded-xl border border-line bg-card p-3.5 transition-all hover:-translate-y-0.5 hover:border-sea/30 hover:shadow-md hover:shadow-ink/5',
+        'group flex items-stretch gap-3 rounded-xl border border-line bg-card p-2.5 transition-all hover:-translate-y-0.5 hover:border-sea/30 hover:shadow-md hover:shadow-ink/5',
         replaced && 'opacity-70'
       )}
     >
-      <div className="min-w-0 flex-1">
+      {/* Thumbnail — helps picture the place at a glance */}
+      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+        {thumb ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={thumb}
+            alt={destination.name}
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-muted-foreground/30">
+            <ImageIcon className="h-6 w-6" />
+          </div>
+        )}
+      </div>
+
+      <div className="min-w-0 flex-1 self-center">
         <div className="flex flex-wrap items-center gap-2">
           <span
             className={cn(

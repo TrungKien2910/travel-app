@@ -20,12 +20,15 @@ interface TodayBannerProps {
   tripId: string
   isAdmin: boolean
   daysUntilTrip?: number
+  /** Optional photo shown faded behind the banner. */
+  bgImage?: string | null
 }
 
 export function TodayBanner({
   todayDestinations,
   isAdmin,
   daysUntilTrip,
+  bgImage,
 }: TodayBannerProps) {
   const router = useRouter()
   const [now, setNow] = useState(() => new Date())
@@ -109,11 +112,23 @@ export function TodayBanner({
 
   return (
     <div className="bg-golden-hour relative overflow-hidden rounded-2xl p-6 text-white">
-      <div className="mb-3 flex items-center gap-2 text-sm text-white/85">
+      {bgImage && (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={bgImage}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 h-full w-full object-cover opacity-30 mix-blend-overlay"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-ink/30 to-transparent" />
+        </>
+      )}
+      <div className="relative mb-3 flex items-center gap-2 text-sm text-white/85">
         <Clock className="h-4 w-4" />
         {current ? 'Đang ở đây' : next ? 'Điểm tiếp theo' : 'Hôm nay'}
       </div>
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="relative flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="font-display text-2xl font-bold">{featured.name}</h2>
           <div className="mt-1.5 flex items-center gap-2 text-sm text-white/85">

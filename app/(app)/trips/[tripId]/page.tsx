@@ -26,6 +26,12 @@ export default async function TripDetailPage({
             orderBy: { order_index: 'asc' },
             include: {
               expenses: { select: { amount: true } },
+              media: {
+                where: { type: 'PHOTO' },
+                orderBy: [{ is_best_shot: 'desc' }, { created_at: 'asc' }],
+                take: 1,
+                select: { file_path: true },
+              },
               _count: { select: { feedbacks: true } },
             },
           },

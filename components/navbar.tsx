@@ -71,7 +71,7 @@ export function Navbar({ avatarUrl }: { avatarUrl?: string | null }) {
             <Compass className="h-5 w-5" />
           </span>
           <span className="font-display text-base font-bold tracking-tight text-ink">
-            Hải trình
+            Travel
           </span>
         </Link>
 
@@ -162,7 +162,7 @@ export function Navbar({ avatarUrl }: { avatarUrl?: string | null }) {
                   <Compass className="h-5 w-5" />
                 </span>
                 <span className="font-display text-base font-bold">
-                  Hải trình
+                  Travel
                 </span>
               </div>
               <p className="mt-3 text-sm font-medium">{session?.user?.name}</p>

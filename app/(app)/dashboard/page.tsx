@@ -9,7 +9,8 @@ import { StatCards } from '@/components/dashboard/stat-cards'
 import { PendingTasks } from '@/components/dashboard/pending-tasks'
 import { BestShotsStrip } from '@/components/dashboard/best-shots-strip'
 import { DayBlock } from '@/components/trips/day-block'
-import { Plus, MapPin } from 'lucide-react'
+import { formatDate } from '@/lib/format'
+import { Plus, MapPin, CalendarDays, Users } from 'lucide-react'
 
 async function getActiveTrip(userId: string) {
   const today = new Date()
@@ -96,10 +97,17 @@ export default async function DashboardPage() {
             include: {
               expenses: { select: { amount: true, user_id: true } },
               feedbacks: { select: { user_id: true } },
+              // All photos, best-shot first: media[0] = thumbnail, the
+              // is_best_shot ones feed the "Ảnh đẹp gần nhất" strip.
               media: {
-                where: { type: 'PHOTO', is_best_shot: true },
-                orderBy: { created_at: 'desc' },
-                select: { id: true, file_path: true, file_name: true },
+                where: { type: 'PHOTO' },
+                orderBy: [{ is_best_shot: 'desc' }, { created_at: 'desc' }],
+                select: {
+                  id: true,
+                  file_path: true,
+                  file_name: true,
+                  is_best_shot: true,
+                },
               },
               _count: { select: { feedbacks: true } },
             },
@@ -174,33 +182,35 @@ export default async function DashboardPage() {
     .filter((dest) => dest.status === 'PENDING')
     .map((dest) => ({ id: dest.id, name: dest.name }))
 
-  // Ảnh đẹp gần nhất (tối đa 4)
+  // Ảnh đẹp gần nhất (tối đa 4) — chỉ ảnh được đánh dấu best-shot
   const bestShots = fullTrip!.days
     .flatMap((d) => d.destinations)
     .flatMap((dest) =>
-      dest.media.map((m) => ({
-        id: m.id,
-        file_path: m.file_path,
-        file_name: m.file_name,
-        destId: dest.id,
-      }))
+      dest.media
+        .filter((m) => m.is_best_shot)
+        .map((m) => ({
+          id: m.id,
+          file_path: m.file_path,
+          file_name: m.file_name,
+          destId: dest.id,
+        }))
     )
     .slice(0, 4)
+
+  // Cover image for the trip card: best-shot anywhere, else any photo.
+  const allPhotos = allDests.flatMap((d) => d.media)
+  const coverImage =
+    allPhotos.find((m) => m.is_best_shot)?.file_path ??
+    allPhotos[0]?.file_path ??
+    null
+
+  // Background for today's banner: a photo from a today destination.
+  const todayImage = todayDests.flatMap((d: any) => d.media)[0]?.file_path ?? null
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-ink">
-            Tổng quan
-          </h1>
-          <Link
-            href={`/trips/${trip.id}`}
-            className="text-sm text-muted-foreground transition-colors hover:text-sea"
-          >
-            {trip.title} →
-          </Link>
-        </div>
+        <h1 className="font-display text-2xl font-bold text-ink">Tổng quan</h1>
         {isAdmin && (
           <Button asChild size="sm">
             <Link href="/trips/new">
@@ -210,11 +220,49 @@ export default async function DashboardPage() {
         )}
       </div>
 
+      {/* Trip cover card */}
+      <Link
+        href={`/trips/${trip.id}`}
+        className="group relative block h-40 overflow-hidden rounded-2xl border border-line md:h-48"
+      >
+        {coverImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={coverImage}
+            alt={trip.title}
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="bg-golden-hour absolute inset-0" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/30 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 p-5 text-white md:p-6">
+          <h2 className="font-display text-2xl font-bold drop-shadow-sm md:text-3xl">
+            {trip.title}
+          </h2>
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/85">
+            <span className="flex items-center gap-1.5">
+              <CalendarDays className="h-4 w-4" />
+              {formatDate(trip.start_date)} – {formatDate(trip.end_date)}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Users className="h-4 w-4" />
+              {fullTrip!.members.length} thành viên
+            </span>
+            <span className="flex items-center gap-1.5">
+              <MapPin className="h-4 w-4" />
+              {liveDests.length} điểm đến
+            </span>
+          </div>
+        </div>
+      </Link>
+
       <TodayBanner
         todayDestinations={todayDests as any}
         tripId={trip.id}
         isAdmin={isAdmin}
         daysUntilTrip={daysUntilTrip}
+        bgImage={todayImage}
       />
 
       <StatCards

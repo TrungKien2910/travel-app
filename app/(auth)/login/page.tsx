@@ -42,8 +42,8 @@ export default function LoginPage() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 backdrop-blur">
             <Compass className="h-5 w-5" />
           </div>
-          <span className="font-display text-sm font-semibold uppercase tracking-[0.2em] text-white/85">
-            Hải trình
+          <span className="font-display text-sm font-semibold uppercase tracking-[0.25em] text-white/85">
+            Travel
           </span>
         </div>
         <h1 className="mt-5 font-display text-2xl font-bold leading-tight">
