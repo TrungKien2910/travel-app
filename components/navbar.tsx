@@ -9,6 +9,8 @@ import {
   Menu,
   LogOut,
   Plus,
+  Users,
+  UserCog,
 } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -39,6 +41,7 @@ type NavLink = {
 const navLinks: NavLink[] = [
   { href: '/dashboard', label: 'Tổng quan', icon: LayoutDashboard },
   { href: '/trips/new', label: 'Chuyến đi mới', icon: Plus, adminOnly: true },
+  { href: '/admin/users', label: 'Quản lý', icon: Users, adminOnly: true },
 ]
 
 export function Navbar() {
@@ -129,6 +132,21 @@ export function Navbar() {
                 </span>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/account">
+                  <UserCog className="mr-2 h-4 w-4" />
+                  Tài khoản
+                </Link>
+              </DropdownMenuItem>
+              {isAdmin && (
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/users">
+                    <Users className="mr-2 h-4 w-4" />
+                    Quản lý người dùng
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => signOut({ callbackUrl: '/login' })}
                 className="text-destructive focus:text-destructive"
@@ -179,6 +197,19 @@ export function Navbar() {
                   {label}
                 </Link>
               ))}
+              <Link
+                href="/account"
+                onClick={() => setMobileOpen(false)}
+                className={cn(
+                  'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium',
+                  pathname === '/account'
+                    ? 'bg-sea-soft text-sea-deep'
+                    : 'text-muted-foreground hover:bg-secondary hover:text-ink'
+                )}
+              >
+                <UserCog className="h-4 w-4" />
+                Tài khoản
+              </Link>
             </nav>
 
             <div className="absolute inset-x-4 bottom-4">
