@@ -1,4 +1,5 @@
 import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 import {
   Card,
   CardContent,
@@ -6,19 +7,22 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { UserAvatar } from '@/components/ui/user-avatar'
+import { AvatarForm } from '@/components/account/avatar-form'
 import { PasswordForm } from '@/components/account/password-form'
 
 export default async function AccountPage() {
   const session = await auth()
-  const user = session!.user
-  const initials =
-    user.name
-      ?.split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2) ?? '?'
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session!.user.id },
+    select: { name: true, email: true, role: true, avatar_url: true },
+  })
+  const user = dbUser ?? {
+    name: session!.user.name ?? '',
+    email: session!.user.email ?? '',
+    role: (session!.user as any).role,
+    avatar_url: null,
+  }
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
@@ -26,20 +30,32 @@ export default async function AccountPage() {
 
       <Card>
         <CardContent className="flex items-center gap-4 pt-6">
-          <Avatar className="h-14 w-14 ring-1 ring-line">
-            <AvatarFallback className="bg-sea-soft text-lg font-semibold text-sea-deep">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar
+            user={user}
+            className="h-14 w-14 ring-1 ring-line"
+            fallbackClassName="text-lg"
+          />
           <div>
             <p className="font-display text-lg font-semibold text-ink">
               {user.name}
             </p>
             <p className="text-sm text-muted-foreground">{user.email}</p>
             <span className="mt-1 inline-flex rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground">
-              {(user as any).role === 'ADMIN' ? 'Quản trị' : 'Thành viên'}
+              {user.role === 'ADMIN' ? 'Quản trị' : 'Thành viên'}
             </span>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Ảnh đại diện</CardTitle>
+          <CardDescription>
+            Dùng đường dẫn ảnh có sẵn (vd từ Facebook, Google Photos…).
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AvatarForm name={user.name} initialUrl={user.avatar_url} />
         </CardContent>
       </Card>
 

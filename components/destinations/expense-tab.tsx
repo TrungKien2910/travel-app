@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { UserAvatar } from '@/components/ui/user-avatar'
 import { ExpenseProgress } from '@/components/ui/expense-progress'
 import { formatVND } from '@/lib/format'
 import { Plus, Trash2, Split } from 'lucide-react'
@@ -93,11 +93,11 @@ export function ExpenseTab({ expenses, members, budget, destId, isAdmin }: any) 
       {Object.values(byUser).map(({ user, items, total }: any) => (
         <div key={user.id} className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <Avatar className="h-6 w-6">
-              <AvatarFallback className="bg-sea-soft text-[10px] font-semibold text-sea-deep">
-                {user.name.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              user={user}
+              className="h-6 w-6"
+              fallbackClassName="text-[10px]"
+            />
             <span className="text-sm font-medium text-ink">{user.name}</span>
             <span className="tabular ml-auto text-sm font-medium text-ink">
               {formatVND(total)}

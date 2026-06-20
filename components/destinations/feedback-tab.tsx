@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { UserAvatar } from '@/components/ui/user-avatar'
 import { cn } from '@/lib/utils'
 
 const feedbackConfig = {
@@ -109,11 +109,10 @@ export function FeedbackTab({ feedbacks, members, destId, currentUserId }: any) 
             key={fb.id}
             className="flex items-start gap-3 rounded-xl border border-line bg-card p-3"
           >
-            <Avatar className="h-8 w-8 shrink-0">
-              <AvatarFallback className="bg-sea-soft text-xs font-semibold text-sea-deep">
-                {fb.user.name.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              user={fb.user}
+              className="h-8 w-8 shrink-0"
+            />
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm font-medium text-ink">
@@ -149,11 +148,11 @@ export function FeedbackTab({ feedbacks, members, destId, currentUserId }: any) 
               key={m.user_id}
               className="flex items-center gap-3 rounded-xl border border-dashed border-line bg-muted/40 p-3"
             >
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-muted text-xs text-muted-foreground">
-                  {m.user.name.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <UserAvatar
+                user={m.user}
+                className="h-8 w-8"
+                fallbackClassName="bg-muted text-muted-foreground font-normal"
+              />
               <span className="text-sm text-muted-foreground">
                 {m.user.name} — chưa cho cảm nhận
               </span>

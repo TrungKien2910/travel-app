@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button'
 import { TodayBanner } from '@/components/dashboard/today-banner'
 import { ProgressRing } from '@/components/dashboard/progress-ring'
 import { MemberSpendList } from '@/components/dashboard/member-spend-list'
+import { StatCards } from '@/components/dashboard/stat-cards'
+import { PendingTasks } from '@/components/dashboard/pending-tasks'
+import { BestShotsStrip } from '@/components/dashboard/best-shots-strip'
 import { DayBlock } from '@/components/trips/day-block'
 import { Plus, MapPin } from 'lucide-react'
 
@@ -76,10 +79,15 @@ export default async function DashboardPage() {
 
   const { trip, daysUntilTrip } = active
 
+  // Single round-trip: everything the dashboard blocks need.
   const fullTrip = await prisma.trip.findUnique({
     where: { id: trip.id },
     include: {
-      members: { include: { user: { select: { id: true, name: true } } } },
+      members: {
+        include: {
+          user: { select: { id: true, name: true, avatar_url: true } },
+        },
+      },
       days: {
         orderBy: { day_number: 'asc' },
         include: {
@@ -87,6 +95,12 @@ export default async function DashboardPage() {
             orderBy: { order_index: 'asc' },
             include: {
               expenses: { select: { amount: true, user_id: true } },
+              feedbacks: { select: { user_id: true } },
+              media: {
+                where: { type: 'PHOTO', is_best_shot: true },
+                orderBy: { created_at: 'desc' },
+                select: { id: true, file_path: true, file_name: true },
+              },
               _count: { select: { feedbacks: true } },
             },
           },
@@ -95,25 +109,83 @@ export default async function DashboardPage() {
     },
   })
 
-  const todayStr = new Date().toDateString()
+  const now = new Date()
+  const todayStr = now.toDateString()
+  const todayMidnight = new Date(now)
+  todayMidnight.setHours(0, 0, 0, 0)
+
   const todayDay = fullTrip!.days.find(
     (d) => new Date(d.date).toDateString() === todayStr
   )
   const todayDests = todayDay?.destinations ?? []
 
   const allDests = fullTrip!.days.flatMap((d) => d.destinations)
+  const liveDests = allDests.filter((d) => d.status !== 'REPLACED')
   const doneDests = allDests.filter((d) => d.status === 'DONE')
   const allExpenses = allDests.flatMap((d) => d.expenses)
+  const totalSpent = allExpenses.reduce((s, e) => s + e.amount, 0)
 
   const memberSpend = fullTrip!.members
     .map((m) => ({
       id: m.user_id,
       name: m.user.name,
+      avatar_url: m.user.avatar_url,
       total: allExpenses
         .filter((e) => e.user_id === m.user_id)
         .reduce((s, e) => s + e.amount, 0),
     }))
     .sort((a, b) => b.total - a.total)
+
+  // Trip state + days left
+  const startMid = new Date(trip.start_date)
+  startMid.setHours(0, 0, 0, 0)
+  const endMid = new Date(trip.end_date)
+  endMid.setHours(0, 0, 0, 0)
+  const tripState: 'upcoming' | 'ongoing' | 'done' =
+    todayMidnight < startMid
+      ? 'upcoming'
+      : todayMidnight > endMid
+        ? 'done'
+        : 'ongoing'
+  const computedDaysLeft =
+    tripState === 'upcoming'
+      ? Math.ceil((startMid.getTime() - todayMidnight.getTime()) / 86400000)
+      : null
+
+  // Việc cần làm: ai chưa feedback các điểm DONE
+  const doneDestIds = doneDests.map((d) => d.id)
+  const missingFeedback = fullTrip!.members
+    .map((m) => {
+      const count = doneDests.filter(
+        (d) => !d.feedbacks.some((f) => f.user_id === m.user_id)
+      ).length
+      return { name: m.user.name, count }
+    })
+    .filter((x) => doneDestIds.length > 0 && x.count > 0)
+
+  // Việc cần làm: điểm hôm nay/đã qua mà vẫn PENDING
+  const overdue = fullTrip!.days
+    .filter((d) => {
+      const dd = new Date(d.date)
+      dd.setHours(0, 0, 0, 0)
+      return dd <= todayMidnight
+    })
+    .flatMap((d) => d.destinations)
+    .filter((dest) => dest.status === 'PENDING')
+    .map((dest) => ({ id: dest.id, name: dest.name }))
+
+  // Ảnh đẹp gần nhất (tối đa 4)
+  const bestShots = fullTrip!.days
+    .flatMap((d) => d.destinations)
+    .flatMap((dest) =>
+      dest.media.map((m) => ({
+        id: m.id,
+        file_path: m.file_path,
+        file_name: m.file_name,
+        destId: dest.id,
+      }))
+    )
+    .slice(0, 4)
 
   return (
     <div className="space-y-6">
@@ -145,6 +217,21 @@ export default async function DashboardPage() {
         daysUntilTrip={daysUntilTrip}
       />
 
+      <StatCards
+        totalSpent={totalSpent}
+        memberCount={fullTrip!.members.length}
+        doneCount={doneDests.length}
+        totalDests={liveDests.length}
+        daysLeft={computedDaysLeft}
+        tripState={tripState}
+      />
+
+      <PendingTasks
+        tripId={trip.id}
+        missingFeedback={missingFeedback}
+        overdue={overdue}
+      />
+
       <div className="grid gap-6 md:grid-cols-3">
         {/* Progress */}
         <div className="flex flex-col items-center gap-4 rounded-2xl border border-line bg-card p-6">
@@ -153,7 +240,7 @@ export default async function DashboardPage() {
           </h2>
           <ProgressRing
             done={doneDests.length}
-            total={allDests.length}
+            total={liveDests.length}
             size={128}
           />
           <div className="mt-1 flex flex-wrap justify-center gap-1.5">
@@ -202,6 +289,9 @@ export default async function DashboardPage() {
           <DayBlock day={todayDay as any} tripId={trip.id} isLast />
         </div>
       )}
+
+      {/* Best shots */}
+      <BestShotsStrip tripId={trip.id} photos={bestShots} />
     </div>
   )
 }

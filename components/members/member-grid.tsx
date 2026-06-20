@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { UserAvatar } from '@/components/ui/user-avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { UserPlus, Trash2, Search } from 'lucide-react'
@@ -16,7 +17,7 @@ import {
 
 interface Member {
   user_id: string
-  user: { id: string; name: string; email: string }
+  user: { id: string; name: string; email: string; avatar_url?: string | null }
 }
 
 export function MemberGrid({
@@ -166,11 +167,11 @@ export function MemberGrid({
             key={member.user_id}
             className="group relative flex flex-col items-center gap-2 rounded-xl border border-line bg-card p-4 text-center"
           >
-            <Avatar className="h-12 w-12 ring-1 ring-line">
-              <AvatarFallback className="bg-sea-soft text-base font-semibold text-sea-deep">
-                {member.user.name.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              user={member.user}
+              className="h-12 w-12 ring-1 ring-line"
+              fallbackClassName="text-base"
+            />
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-ink">
                 {member.user.name}
