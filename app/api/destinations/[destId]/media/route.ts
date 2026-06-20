@@ -1,8 +1,7 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
+import { uploadMedia } from '@/lib/storage'
 
 const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_PHOTO = ['image/jpeg', 'image/png', 'image/webp']
@@ -49,24 +48,24 @@ export async function POST(
 
   const ext = file.name.split('.').pop() ?? 'bin'
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-  const uploadDir = path.join(
-    process.cwd(),
-    'public',
-    'uploads',
-    dest.day.trip_id,
-    params.destId
-  )
+  const objectPath = `${dest.day.trip_id}/${params.destId}/${filename}`
 
-  await mkdir(uploadDir, { recursive: true })
   const bytes = await file.arrayBuffer()
-  await writeFile(path.join(uploadDir, filename), Buffer.from(bytes))
-
-  const filePath = `/uploads/${dest.day.trip_id}/${params.destId}/${filename}`
+  let publicUrl: string
+  try {
+    publicUrl = await uploadMedia(objectPath, Buffer.from(bytes), file.type)
+  } catch (e) {
+    console.error('Storage upload failed:', e)
+    return NextResponse.json(
+      { error: 'Tải file lên thất bại. Thử lại nhé.' },
+      { status: 500 }
+    )
+  }
 
   const media = await prisma.destinationMedia.create({
     data: {
       destination_id: params.destId,
-      file_path: filePath,
+      file_path: publicUrl,
       file_name: file.name,
       file_size: file.size,
       type: type as 'PHOTO' | 'BILL',

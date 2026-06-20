@@ -1,8 +1,7 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
-import { unlink } from 'fs/promises'
-import path from 'path'
+import { deleteMedia, pathFromUrl } from '@/lib/storage'
 
 export async function DELETE(
   _: Request,
@@ -19,10 +18,13 @@ export async function DELETE(
   })
   if (!media) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  // Remove file from disk; ignore if already gone
-  try {
-    await unlink(path.join(process.cwd(), 'public', media.file_path))
-  } catch {}
+  // Remove the object from Storage; ignore if it isn't a Storage URL or is gone.
+  const objectPath = pathFromUrl(media.file_path)
+  if (objectPath) {
+    try {
+      await deleteMedia(objectPath)
+    } catch {}
+  }
 
   await prisma.destinationMedia.delete({ where: { id: params.mediaId } })
   return NextResponse.json({ ok: true })
