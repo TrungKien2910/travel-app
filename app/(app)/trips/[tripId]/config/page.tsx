@@ -114,6 +114,7 @@ const emptyReplaceForm = {
 const emptyForm = {
   name: '',
   description: '',
+  address: '',
   start_time: '',
   end_time: '',
   budget_estimate: '',
@@ -204,6 +205,7 @@ export default function ConfigPage() {
     const body = {
       name: destForm.name,
       description: destForm.description || null,
+      address: destForm.address || null,
       start_time: destForm.start_time
         ? `${dayDate}T${destForm.start_time}`
         : null,
@@ -337,6 +339,7 @@ export default function ConfigPage() {
     setDestForm({
       name: dest.name,
       description: dest.description ?? '',
+      address: dest.address ?? '',
       start_time: dest.start_time
         ? new Date(dest.start_time).toTimeString().slice(0, 5)
         : '',
@@ -491,6 +494,16 @@ export default function ConfigPage() {
                   setDestForm({ ...destForm, description: e.target.value })
                 }
                 placeholder="Lưu ý khi đến…"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Địa chỉ</Label>
+              <Input
+                value={destForm.address}
+                onChange={(e) =>
+                  setDestForm({ ...destForm, address: e.target.value })
+                }
+                placeholder="VD: Núi Chúa, Hòa Ninh, Đà Nẵng"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">

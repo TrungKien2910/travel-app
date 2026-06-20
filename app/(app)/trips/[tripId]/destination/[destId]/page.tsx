@@ -13,6 +13,7 @@ import { InfoTab } from '@/components/destinations/info-tab'
 import { MediaTab } from '@/components/destinations/media-tab'
 import { ExpenseTab } from '@/components/destinations/expense-tab'
 import { FeedbackTab } from '@/components/destinations/feedback-tab'
+import { DayScheduleDrawer } from '@/components/destinations/day-schedule-drawer'
 import { formatTime } from '@/lib/format'
 import { ChevronRight, Clock } from 'lucide-react'
 
@@ -29,7 +30,22 @@ export default async function DestinationDetailPage({
     prisma.destination.findUnique({
       where: { id: params.destId },
       include: {
-        day: { include: { trip: true } },
+        day: {
+          include: {
+            trip: true,
+            destinations: {
+              orderBy: { order_index: 'asc' },
+              select: {
+                id: true,
+                name: true,
+                order_index: true,
+                start_time: true,
+                end_time: true,
+                status: true,
+              },
+            },
+          },
+        },
         replaced_by: { select: { id: true, name: true } },
         replaces: { select: { id: true, name: true } },
         expenses: {
@@ -125,6 +141,14 @@ export default async function DestinationDetailPage({
               </p>
             )}
           </div>
+
+          <DayScheduleDrawer
+            destinations={dest.day.destinations as any}
+            currentDestId={dest.id}
+            tripId={params.tripId}
+            dayNumber={dest.day.day_number}
+            dayDate={dest.day.date as any}
+          />
         </div>
       </div>
 

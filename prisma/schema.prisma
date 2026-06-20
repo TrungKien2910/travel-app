@@ -91,6 +91,7 @@ model Destination {
   day_id          String
   name            String
   description     String?
+  address         String?
   order_index     Int
   start_time      DateTime?
   end_time        DateTime?

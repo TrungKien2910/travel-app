@@ -28,7 +28,8 @@ export async function POST(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const body = await req.json()
-  const { name, description, start_time, end_time, budget_estimate } = body
+  const { name, description, address, start_time, end_time, budget_estimate } =
+    body
 
   if (!name) return NextResponse.json({ error: 'Name required' }, { status: 400 })
 
@@ -42,6 +43,7 @@ export async function POST(
       day_id: params.dayId,
       name,
       description,
+      address: address?.trim() || null,
       order_index: (last?.order_index ?? -1) + 1,
       start_time: start_time ? new Date(start_time) : null,
       end_time: end_time ? new Date(end_time) : null,

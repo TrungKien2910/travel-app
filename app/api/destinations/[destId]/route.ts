@@ -33,6 +33,8 @@ export async function PUT(
     data: {
       name: body.name,
       description: body.description,
+      address:
+        body.address !== undefined ? body.address?.trim() || null : undefined,
       start_time: body.start_time ? new Date(body.start_time) : null,
       end_time: body.end_time ? new Date(body.end_time) : null,
       budget_estimate:

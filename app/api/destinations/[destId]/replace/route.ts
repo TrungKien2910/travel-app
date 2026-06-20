@@ -13,7 +13,7 @@ export async function POST(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const body = await req.json()
-  const { name, start_time, end_time, budget_estimate } = body
+  const { name, address, start_time, end_time, budget_estimate } = body
   if (!name) return NextResponse.json({ error: 'Name required' }, { status: 400 })
 
   const old = await prisma.destination.findUnique({
@@ -27,6 +27,7 @@ export async function POST(
         day_id: old.day_id,
         name,
         description: null,
+        address: address?.trim() || null,
         order_index: old.order_index + 1,
         start_time: start_time ? new Date(start_time) : null,
         end_time: end_time ? new Date(end_time) : null,

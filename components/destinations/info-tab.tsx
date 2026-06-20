@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { formatVND } from '@/lib/format'
-import { Pencil } from 'lucide-react'
+import { Pencil, MapPin, Navigation } from 'lucide-react'
 
 export function InfoTab({ dest, isAdmin }: any) {
   const router = useRouter()
@@ -22,8 +22,15 @@ export function InfoTab({ dest, isAdmin }: any) {
   const [form, setForm] = useState({
     name: dest.name,
     description: dest.description ?? '',
+    address: dest.address ?? '',
     budget_estimate: dest.budget_estimate?.toString() ?? '',
   })
+
+  const mapsUrl = dest.address
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        dest.address
+      )}`
+    : null
   const [status, setStatus] = useState(dest.status)
   const [saving, setSaving] = useState(false)
 
@@ -84,6 +91,14 @@ export function InfoTab({ dest, isAdmin }: any) {
             />
           </div>
           <div className="space-y-1.5">
+            <Label>Địa chỉ</Label>
+            <Input
+              value={form.address}
+              onChange={(e) => setForm({ ...form, address: e.target.value })}
+              placeholder="VD: Núi Chúa, Hòa Ninh, Đà Nẵng"
+            />
+          </div>
+          <div className="space-y-1.5">
             <Label>Ngân sách dự tính (VND)</Label>
             <Input
               type="number"
@@ -117,6 +132,26 @@ export function InfoTab({ dest, isAdmin }: any) {
             <p className="text-sm italic text-muted-foreground">
               Chưa có ghi chú cho điểm đến này.
             </p>
+          )}
+          {dest.address && (
+            <div>
+              <dt className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Địa chỉ
+              </dt>
+              <dd className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <span className="flex items-start gap-1.5 text-sm text-ink">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-sea" />
+                  {dest.address}
+                </span>
+                {mapsUrl && (
+                  <Button asChild size="sm" variant="outline">
+                    <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
+                      <Navigation className="mr-1.5 h-3.5 w-3.5" /> Chỉ đường
+                    </a>
+                  </Button>
+                )}
+              </dd>
+            </div>
           )}
           {dest.budget_estimate != null && (
             <div>
