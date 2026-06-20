@@ -2,26 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Surfaces — warm sand, not cold white */
+    --background: 38 50% 96%;
+    --foreground: 207 71% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 207 71% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 207 71% 15%;
+
+    /* Primary — sea teal (#0E7C9D) */
+    --primary: 194 83% 34%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary — soft sea tint */
+    --secondary: 192 40% 93%;
+    --secondary-foreground: 196 60% 22%;
+
+    /* Muted — warm grey on sand */
+    --muted: 38 30% 92%;
+    --muted-foreground: 210 12% 45%;
+
+    /* Accent — golden-hour sun (#F2994A) */
+    --accent: 28 87% 62%;
+    --accent-foreground: 24 60% 18%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 36 33% 87%;
+    --input: 36 33% 87%;
+    --ring: 194 83% 34%;
+
+    --radius: 0.85rem;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+  /* Tabular numbers for money/stats */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  /* Golden-hour banner gradient — the dashboard signature */
+  .bg-golden-hour {
+    background-image: linear-gradient(135deg, #0E7C9D 0%, #1A9CB8 38%, #F2994A 130%);
+  }
+  /* Subtle horizon glow used behind hero areas */
+  .bg-horizon {
+    background-image:
+      radial-gradient(120% 80% at 50% 0%, rgba(242, 153, 74, 0.10) 0%, transparent 55%),
+      radial-gradient(90% 60% at 100% 0%, rgba(14, 124, 157, 0.10) 0%, transparent 50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
   }
 }

@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  VIEWER
+}
+
+enum DestStatus {
+  PENDING
+  DONE
+  REJECTED
+  REPLACED
+}
+
+enum MediaType {
+  PHOTO
+  BILL
+}
+
+enum FeedbackStatus {
+  OK
+  NOT_OK
+  MAYBE
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password_hash String
+  name          String
+  avatar_url    String?
+  role          Role     @default(VIEWER)
+  created_at    DateTime @default(now())
+
+  trips_created    Trip[]
+  trip_memberships TripMember[]
+  expenses         DestinationExpense[]
+  media_uploads    DestinationMedia[]
+  feedbacks        DestinationFeedback[]
+}
+
+model Trip {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  cover_image String?
+  start_date  DateTime
+  end_date    DateTime
+  created_by  String
+  created_at  DateTime @default(now())
+
+  creator User         @relation(fields: [created_by], references: [id])
+  members TripMember[]
+  days    Day[]
+}
+
+model TripMember {
+  trip_id   String
+  user_id   String
+  joined_at DateTime @default(now())
+
+  trip Trip @relation(fields: [trip_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id])
+
+  @@id([trip_id, user_id])
+}
+
+model Day {
+  id         String   @id @default(cuid())
+  trip_id    String
+  date       DateTime
+  day_number Int
+  label      String?
+
+  trip         Trip          @relation(fields: [trip_id], references: [id], onDelete: Cascade)
+  destinations Destination[]
+
+  @@unique([trip_id, day_number])
+}
+
+model Destination {
+  id              String     @id @default(cuid())
+  day_id          String
+  name            String
+  description     String?
+  order_index     Int
+  start_time      DateTime?
+  end_time        DateTime?
+  status          DestStatus @default(PENDING)
+  replaced_by_id  String?
+  budget_estimate Float?
+  created_at      DateTime   @default(now())
+
+  day         Day                   @relation(fields: [day_id], references: [id], onDelete: Cascade)
+  replaced_by Destination?          @relation("ReplacedBy", fields: [replaced_by_id], references: [id])
+  replaces    Destination[]         @relation("ReplacedBy")
+  expenses    DestinationExpense[]
+  media       DestinationMedia[]
+  feedbacks   DestinationFeedback[]
+}
+
+model DestinationExpense {
+  id             String   @id @default(cuid())
+  destination_id String
+  user_id        String
+  amount         Float
+  note           String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  destination Destination @relation(fields: [destination_id], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [user_id], references: [id])
+}
+
+model DestinationMedia {
+  id             String    @id @default(cuid())
+  destination_id String
+  file_path      String
+  file_name      String
+  file_size      Int
+  type           MediaType
+  is_best_shot   Boolean   @default(false)
+  uploaded_by    String
+  created_at     DateTime  @default(now())
+
+  destination Destination @relation(fields: [destination_id], references: [id], onDelete: Cascade)
+  uploader    User        @relation(fields: [uploaded_by], references: [id])
+}
+
+model DestinationFeedback {
+  id             String         @id @default(cuid())
+  destination_id String
+  user_id        String
+  status         FeedbackStatus
+  note           String?
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+
+  destination Destination @relation(fields: [destination_id], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [user_id], references: [id])
+
+  @@unique([destination_id, user_id])
+}
