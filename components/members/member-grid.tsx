@@ -34,6 +34,7 @@ export function MemberGrid({
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [searching, setSearching] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
+  const [adding, setAdding] = useState(false)
 
   useEffect(() => {
     const t = setTimeout(async () => {
@@ -52,11 +53,14 @@ export function MemberGrid({
   }, [searchEmail])
 
   async function addMember(userId: string) {
+    if (adding) return
+    setAdding(true)
     const res = await fetch(`/api/trips/${tripId}/members`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id: userId }),
     })
+    setAdding(false)
     if (res.ok) {
       setAddOpen(false)
       setSearchEmail('')
@@ -117,7 +121,7 @@ export function MemberGrid({
                     return (
                       <button
                         key={user.id}
-                        disabled={alreadyMember}
+                        disabled={alreadyMember || adding}
                         onClick={() => addMember(user.id)}
                         className="flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-sea-soft disabled:cursor-not-allowed disabled:opacity-40"
                       >

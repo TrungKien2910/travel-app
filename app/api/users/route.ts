@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 
@@ -56,14 +57,32 @@ export async function POST(req: Request) {
       { status: 409 }
     )
 
-  const user = await prisma.user.create({
-    data: {
-      name: name.trim(),
-      email: normalizedEmail,
-      role,
-      password_hash: await bcrypt.hash(password, 10),
-    },
-    select: { id: true, name: true, email: true, role: true, created_at: true },
-  })
-  return NextResponse.json(user, { status: 201 })
+  try {
+    const user = await prisma.user.create({
+      data: {
+        name: name.trim(),
+        email: normalizedEmail,
+        role,
+        password_hash: await bcrypt.hash(password, 10),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        created_at: true,
+      },
+    })
+    return NextResponse.json(user, { status: 201 })
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === 'P2002'
+    )
+      return NextResponse.json(
+        { error: 'Email này đã được dùng.' },
+        { status: 409 }
+      )
+    throw e
+  }
 }
