@@ -23,17 +23,25 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { StatusBadge } from '@/components/ui/status-badge'
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import {
   GripVertical,
   Plus,
   Trash2,
   Edit2,
+  Replace,
   AlertTriangle,
   ArrowLeft,
   CalendarPlus,
 } from 'lucide-react'
 import { formatDate, formatTime } from '@/lib/format'
 
-function SortableDestItem({ dest, onEdit, onDelete }: any) {
+function SortableDestItem({ dest, onEdit, onDelete, onReplace }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: dest.id })
   const style = {
@@ -75,6 +83,16 @@ function SortableDestItem({ dest, onEdit, onDelete }: any) {
       >
         <Edit2 className="h-4 w-4" />
       </button>
+      {dest.status !== 'REPLACED' && (
+        <button
+          onClick={() => onReplace(dest)}
+          className="text-muted-foreground/50 hover:text-sun-deep"
+          aria-label="Thay thế"
+          title="Thay bằng điểm đến khác"
+        >
+          <Replace className="h-4 w-4" />
+        </button>
+      )}
       <button
         onClick={() => onDelete(dest.id)}
         className="text-muted-foreground/50 hover:text-rose-500"
@@ -84,6 +102,13 @@ function SortableDestItem({ dest, onEdit, onDelete }: any) {
       </button>
     </div>
   )
+}
+
+const emptyReplaceForm = {
+  name: '',
+  start_time: '',
+  end_time: '',
+  budget_estimate: '',
 }
 
 const emptyForm = {
@@ -103,6 +128,9 @@ export default function ConfigPage() {
   const [editingDest, setEditingDest] = useState<any>(null)
   const [destForm, setDestForm] = useState(emptyForm)
   const [conflict, setConflict] = useState('')
+  const [replacing, setReplacing] = useState<any>(null)
+  const [replaceForm, setReplaceForm] = useState(emptyReplaceForm)
+  const [replaceBusy, setReplaceBusy] = useState(false)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
   )
@@ -234,6 +262,54 @@ export default function ConfigPage() {
     if (editingDest?.id === destId) resetForm()
   }
 
+  function startReplace(dest: any) {
+    setReplacing(dest)
+    setReplaceForm(emptyReplaceForm)
+  }
+
+  async function replaceDest() {
+    if (!replacing || !replaceForm.name) return
+    const dayId = replacing.day_id
+    const dayDate = days
+      .find((d) => d.id === dayId)
+      ?.date.slice(0, 10)
+    setReplaceBusy(true)
+    const res = await fetch(`/api/destinations/${replacing.id}/replace`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: replaceForm.name,
+        start_time: replaceForm.start_time
+          ? `${dayDate}T${replaceForm.start_time}`
+          : null,
+        end_time: replaceForm.end_time
+          ? `${dayDate}T${replaceForm.end_time}`
+          : null,
+        budget_estimate: replaceForm.budget_estimate
+          ? Number(replaceForm.budget_estimate)
+          : null,
+      }),
+    })
+    setReplaceBusy(false)
+    if (!res.ok) return
+    const { old: updatedOld, new: newDest } = await res.json()
+
+    // Old → REPLACED; insert new destination right after it
+    setDays(
+      days.map((d) => {
+        if (d.id !== dayId) return d
+        const next: any[] = []
+        for (const x of d.destinations) {
+          next.push(x.id === updatedOld.id ? { ...x, ...updatedOld } : x)
+          if (x.id === updatedOld.id) next.push(newDest)
+        }
+        return { ...d, destinations: next }
+      })
+    )
+    setReplacing(null)
+    setReplaceForm(emptyReplaceForm)
+  }
+
   async function handleDragEnd(event: DragEndEvent, dayId: string) {
     const { active, over } = event
     if (!over || active.id === over.id) return
@@ -357,6 +433,10 @@ export default function ConfigPage() {
                           startEdit(d)
                         }}
                         onDelete={deleteDest}
+                        onReplace={(d: any) => {
+                          setSelectedDay(day.id)
+                          startReplace(d)
+                        }}
                       />
                     ))}
                   </div>
@@ -477,6 +557,100 @@ export default function ConfigPage() {
           </div>
         )}
       </div>
+
+      {/* Replace destination dialog */}
+      <Dialog
+        open={!!replacing}
+        onOpenChange={(open) => {
+          if (!open) {
+            setReplacing(null)
+            setReplaceForm(emptyReplaceForm)
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Thay thế điểm đến</DialogTitle>
+            <DialogDescription>
+              “{replacing?.name}” sẽ chuyển sang trạng thái “Đã thay” và giữ lại
+              lịch sử. Điểm mới được thêm ngay sau nó.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Tên điểm đến mới *</Label>
+              <Input
+                value={replaceForm.name}
+                onChange={(e) =>
+                  setReplaceForm({ ...replaceForm, name: e.target.value })
+                }
+                placeholder="VD: Núi Bà Đen"
+                autoFocus
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Giờ bắt đầu</Label>
+                <Input
+                  type="time"
+                  value={replaceForm.start_time}
+                  onChange={(e) =>
+                    setReplaceForm({
+                      ...replaceForm,
+                      start_time: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Giờ kết thúc</Label>
+                <Input
+                  type="time"
+                  value={replaceForm.end_time}
+                  onChange={(e) =>
+                    setReplaceForm({
+                      ...replaceForm,
+                      end_time: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Ngân sách dự tính (VND)</Label>
+              <Input
+                type="number"
+                value={replaceForm.budget_estimate}
+                onChange={(e) =>
+                  setReplaceForm({
+                    ...replaceForm,
+                    budget_estimate: e.target.value,
+                  })
+                }
+                placeholder="500000"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={replaceDest}
+                className="flex-1"
+                disabled={!replaceForm.name || replaceBusy}
+              >
+                {replaceBusy ? 'Đang thay…' : 'Xác nhận thay thế'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setReplacing(null)
+                  setReplaceForm(emptyReplaceForm)
+                }}
+              >
+                Hủy
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
