@@ -39,7 +39,7 @@ import {
   ArrowLeft,
   CalendarPlus,
 } from 'lucide-react'
-import { formatDate, formatTime } from '@/lib/format'
+import { formatDate, formatTime, timeInputValue } from '@/lib/format'
 
 function SortableDestItem({ dest, onEdit, onDelete, onReplace }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -118,6 +118,13 @@ const emptyForm = {
   start_time: '',
   end_time: '',
   budget_estimate: '',
+}
+
+// Build an ISO datetime pinned to Vietnam time (UTC+7) from a date + "HH:mm",
+// so the stored DateTime means the same wall-clock time on any server/browser.
+function vnDateTime(date: string | undefined, hm: string): string | null {
+  if (!date || !hm) return null
+  return `${date}T${hm}:00+07:00`
 }
 
 export default function ConfigPage() {
@@ -206,10 +213,8 @@ export default function ConfigPage() {
       name: destForm.name,
       description: destForm.description || null,
       address: destForm.address || null,
-      start_time: destForm.start_time
-        ? `${dayDate}T${destForm.start_time}`
-        : null,
-      end_time: destForm.end_time ? `${dayDate}T${destForm.end_time}` : null,
+      start_time: vnDateTime(dayDate, destForm.start_time),
+      end_time: vnDateTime(dayDate, destForm.end_time),
       budget_estimate: destForm.budget_estimate
         ? Number(destForm.budget_estimate)
         : null,
@@ -281,12 +286,8 @@ export default function ConfigPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: replaceForm.name,
-        start_time: replaceForm.start_time
-          ? `${dayDate}T${replaceForm.start_time}`
-          : null,
-        end_time: replaceForm.end_time
-          ? `${dayDate}T${replaceForm.end_time}`
-          : null,
+        start_time: vnDateTime(dayDate, replaceForm.start_time),
+        end_time: vnDateTime(dayDate, replaceForm.end_time),
         budget_estimate: replaceForm.budget_estimate
           ? Number(replaceForm.budget_estimate)
           : null,
@@ -340,12 +341,8 @@ export default function ConfigPage() {
       name: dest.name,
       description: dest.description ?? '',
       address: dest.address ?? '',
-      start_time: dest.start_time
-        ? new Date(dest.start_time).toTimeString().slice(0, 5)
-        : '',
-      end_time: dest.end_time
-        ? new Date(dest.end_time).toTimeString().slice(0, 5)
-        : '',
+      start_time: timeInputValue(dest.start_time),
+      end_time: timeInputValue(dest.end_time),
       budget_estimate: dest.budget_estimate?.toString() ?? '',
     })
   }

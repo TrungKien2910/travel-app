@@ -3,7 +3,10 @@
     "allow": [
       "Bash(npm install *)",
       "Bash(npx prisma *)",
-      "Bash(echo \"SELECT 1;\" > /tmp/test.sql && npx prisma db execute --file /tmp/test.sql --schema prisma/schema.prisma 2>&1 | tail -15)"
+      "Bash(echo \"SELECT 1;\" > /tmp/test.sql && npx prisma db execute --file /tmp/test.sql --schema prisma/schema.prisma 2>&1 | tail -15)",
+      "Bash(vercel project *)",
+      "Bash(vercel inspect *)",
+      "Bash(vercel deploy *)"
     ],
     "additionalDirectories": [
       "\\tmp"
